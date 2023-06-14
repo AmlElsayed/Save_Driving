@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>519485456221-2e0dv9krr2mai71ll7pmqsr1iirv2hrb.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.519485456221-2e0dv9krr2mai71ll7pmqsr1iirv2hrb</string>
+	<key>API_KEY</key>
+	<string>AIzaSyD-Fu_VY3YKa4yC1ge_F-39IGTeCpDrjkM</string>
+	<key>GCM_SENDER_ID</key>
+	<string>519485456221</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.safeDrivingApp</string>
+	<key>PROJECT_ID</key>
+	<string>safe-driving-4dd07</string>
+	<key>STORAGE_BUCKET</key>
+	<string>safe-driving-4dd07.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:519485456221:ios:7f013b6c0b73517449f2b4</string>
+</dict>
+</plist>
