@@ -1,8 +1,6 @@
-import 'dart:convert';
-
-import 'package:camera/camera.dart';
 import 'package:provider/provider.dart';
 import 'package:safe_driving_app/main.dart';
+import 'package:safe_driving_app/models/profile_data.dart';
 import 'package:safe_driving_app/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:safe_driving_app/screens/map_screen1.dart';
@@ -11,17 +9,22 @@ import 'package:safe_driving_app/screens/profile_page.dart';
 import '../services/dark_theme_provider.dart';
 import 'history_screen.dart';
 class NavigationBarPage extends StatefulWidget {
-  NavigationBarPage() ;
+  ProfileModel profileModel;
+  NavigationBarPage( {required this.profileModel}) ;
   String id='NavigationBarPage';
+
   @override
-  State<NavigationBarPage> createState() => _NavigationBarPage();
+  State<NavigationBarPage> createState() => _NavigationBarPage(profileModel);
 }
 
 class _NavigationBarPage extends State<NavigationBarPage> {
+  ProfileModel profileModel;
+_NavigationBarPage(this.profileModel);
   // late List<dynamic> _recognition;
   // int _imageHeight=0;
   // int _imageWidth=0;
   int _selectedIndex=0;
+
   // setRecognitions(recognition,imageHeight,imageWidth){
   //   setState(() {
   //     _recognition=recognition;
@@ -34,18 +37,20 @@ class _NavigationBarPage extends State<NavigationBarPage> {
   //     _selectedIndex=index;
   //   });
   // }
-  static List<Widget>_pages=<Widget>[
-    HomePage(cameras,),
-    MapPage(),
-    HistoryPage(),
-  ProfilePage(),
+   List<Widget>_pages()=>[
+
+    MapPage(profileModel: widget.profileModel,),
+     HomePage(cameras,),
+    HistoryPage(profileModel: widget.profileModel),
+  ProfilePage(profileModel: widget.profileModel),
   ];
   @override
   Widget build(BuildContext context) {
     final themeState = Provider.of<DarkThemeProvider>(context);
     final Color color = themeState.getDarkTheme ? Colors.blueGrey:Colors.white;
+    final List<Widget>page=_pages();
     return Scaffold(
-      body:_pages[_selectedIndex],
+      body:page[_selectedIndex],
       // Container(
       //  child: _pages.elementAt(_selectedIndex),
       // ),
@@ -57,15 +62,15 @@ class _NavigationBarPage extends State<NavigationBarPage> {
         height: 60,
         backgroundColor: color,
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined,color: Colors.black38,) ,
-             label: 'home',
-            selectedIcon: Icon(Icons.home,color: Colors.indigo,),
+          NavigationDestination(icon: Icon(Icons.map_outlined,color: Colors.black38,) ,
+             label: 'location',
+            selectedIcon: Icon(Icons.map,color: Colors.indigo,),
           ),
           NavigationDestination(
-            icon: Icon(Icons.map_outlined,color: Colors.black38,
+            icon: Icon(Icons.home_outlined,color: Colors.black38,
             ) ,
-            selectedIcon: Icon(Icons.map,color: Colors.indigo,),
-            label: 'location',),
+            selectedIcon: Icon(Icons.home,color: Colors.indigo,),
+            label: 'home',),
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined,color: Colors.black38,) ,
             selectedIcon: Icon(Icons.calendar_month,color: Colors.indigo,),

@@ -5,10 +5,12 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_driving_app/constants.dart';
 import 'package:safe_driving_app/models/history.dart';
 import 'package:safe_driving_app/models/profile_data.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../screens/Navigat_page.dart';
 
@@ -19,79 +21,176 @@ class HttpService {
   static var _uploadUrl = Uri.parse(ApiConst.baseUrl + ApiConst.register);
   static var _uploadProfileUrl =
       Uri.parse(ApiConst.baseUrl + ApiConst.register);
-
+  static TripModel? tripModel;
   //Future<void>
-  static login(email, password, context) async {
+  static login( username, password, context) async {
+    var body= {"username": username, "password": password};
     http.Response response = await _client
-        .post(_loginUrl, body: {"email": email, "password": password});
+        .post(_loginUrl,headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    }, body: json.encode(body),);
+    print(_loginUrl);
+    print(response.statusCode);
     if (response.statusCode == 200) {
       print(jsonDecode(response.body));
       var json = jsonDecode(response.body);
-      if (json[0] == 'Driver logged in successfully') {
-        await EasyLoading.showSuccess(json[0]);
-        await Navigator.pushNamed(context, NavigationBarPage().id);
-      } else {
-        await EasyLoading.showError(json[0]);
-      }
-    } else {
+      await EasyLoading.showSuccess('success');
+      ProfileModel profileModel=ProfileModel.fromJson(json['driver']);
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationBarPage(profileModel: profileModel,)));
+    //   if (json["message"] == 'Driver logged in successfully') {
+    //     await EasyLoading.showSuccess(json['message']);
+    //     await Navigator.pushNamed(context, NavigationBarPage().id);
+    //   } else {
+    //     await EasyLoading.showError(json['message']);
+    //   }
+    // } else {
+    //   await EasyLoading.showError(
+    //       "Error Code : ${response.statusCode.toString()}");
+      }else{
       await EasyLoading.showError(
-          "Error Code : ${response.statusCode.toString()}");
+                 "Error Code : ${response.statusCode.toString()}");
     }
   }
 
-  static register(email, password, name, context) async {
-    http.Response response = await _client.post(_registerUrl,
-        body: {"name": name, "email": email, "password": password});
+  static Future<void> register(String email, String password, String lastname,String firstname,String username,String instituteId, context) async {
+    var body={"firstname": firstname,'lastname':lastname,'username':username,'institute_id':instituteId, "email": email, "password": password,};
+    http.Response response = await _client.post(_registerUrl,headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+        body:json.encode(body) );
     if (response.statusCode == 200) {
-      var json = jsonDecode(response.body);
-      if (json[0] == 'this user already exists!') {
-        await EasyLoading.showError(json[0]);
-      } else {
-        await EasyLoading.showSuccess(json[0]);
-        await Navigator.pushReplacementNamed(context, NavigationBarPage().id);
-      }
-    } else {
-      await EasyLoading.showError(
-          "Error Code : ${response.statusCode.toString()}");
-    }
-  }
+      final responsebody = jsonDecode(response.body);
 
-  Future<List<HistoryModel>?> tripDetails() async {
-    http.Response response = await _client.get(_registerUrl);
+    await EasyLoading.showSuccess('success');
+      ProfileModel profileModel=ProfileModel.fromJson(responsebody['driver']);
+      print(responsebody['driver']);
+      print(profileModel.id);
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationBarPage(profileModel: profileModel,)));
+
+     }else {
+        await EasyLoading.showError(
+             "Error Code : ${response.statusCode.toString()}");}
+  }
+  List<TripModel> model=[];
+  Future<List<TripModel>?> tripDetails(id) async {
+    Uri _tipDetail = Uri.parse(ApiConst.baseUrl + '/driver-trips/${id}');
+    http.Response response = await _client.get(_tipDetail);
+    print(response.statusCode);
+
     if (response.statusCode == 200) {
-      List<HistoryModel> model = userModelFromJson(response.body);
+      print(jsonDecode(response.body)["trips"]);
+      for(var trip in jsonDecode(response.body)["trips"]){
+        model.add(TripModel.fromJson(trip));
+      }
+
       return model;
     }
     return null;
   }
 
-  static postTripDetails(data) async {
-    http.Response response =
-        await _client.post(_registerUrl, body: jsonEncode(data));
-    return response;
-    // if (response.statusCode==200){
-    //   String model=userModelToJson();
-    //   return model;
-  }
+   static Future<void> postTripDetails(Startlocation,endlocation,distance,id) async {
 
-  static Future<http.Response> uploadImage(File image) async {
-    String filename = image.path.split('/').last;
-    final request = http.MultipartRequest('POST', _uploadUrl);
-    final headers = {'Content-type': 'multipart/from-data'};
-    Uint8List imageBytes = await image.readAsBytes(); //convert to bytes
+var body={
+
+     "start_loc": Startlocation,
+     "destination": endlocation,
+     "distance": distance
+
+     };
+    Uri _postTipDetail = Uri.parse(ApiConst.baseUrl +'/start_new_trip/${id}');
+    var response =
+        await _client.post(_postTipDetail,headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        }, body: jsonEncode(body));
+    //return response;
+    print(_postTipDetail);
+    print(response.statusCode);
+    print(response.request);
+    //print(jsonDecode(response.body)["message"]);
+    print(id);
+
+     if (response.statusCode==200){
+
+        tripModel=TripModel.fromJson(jsonDecode(response.body)['trip']);
+        print(tripModel!.id);
+   print('success');
+       await EasyLoading.showSuccess('Trip details added successfully');
+       //String model=userModelToJson();
+       //return model;
+
+     }else{
+       print('error');
+     }
+
+  }
+//TripModel? tripModel;
+  Future<void> uploading(File image)async{
+        Uint8List imageBytes = await image.readAsBytes(); //convert to bytes
     String base64image =
-        base64Encode(imageBytes); //convert bytes to base64 string
-    ///For sending files/images/videos
-    request.files.add(await http.MultipartFile.fromPath('image', base64image)
-        // request.files.add(http.MultipartFile('image',image.readAsBytes().asStream(),image.lengthSync(),filename: filename),
-        );
-    request.headers.addAll(headers);
-
-    ///to complete the multipartrequest
-    var res = await request.send();
-    var response = await http.Response.fromStream(res);
-    return response;
+        base64Encode(imageBytes);
+    print(base64image);
+        uploadImage(base64image);
   }
+  Future<void> uploadImage(String base64Image) async {
+    final url = 'https://gp-zx0p.onrender.com/${tripModel!.id}';
+    final headers = {'Content-Type': 'multipart/form-data'};
+    final multipartFile = await getMultipartFileFromBase64(base64Image);
+    final request = http.MultipartRequest('POST', Uri.parse(url))
+      ..headers.addAll(headers)
+      ..files.add(multipartFile);
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      print('Image uploaded successfully');
+    } else {
+      print('Error uploading image');
+    }
+  }
+
+  Future<http.MultipartFile> getMultipartFileFromBase64(String base64Image) async {
+    final decodedImage = base64Decode(base64Image);
+    final tempDir = await getTemporaryDirectory();
+    final tempPath = '${tempDir.path}/temp.jpg';
+    final imageFile = await File(tempPath).writeAsBytes(decodedImage);
+    final stream = http.ByteStream(imageFile.openRead());
+    final length = await imageFile.length();
+    final multipartFile = http.MultipartFile('image', stream, length,
+        filename: imageFile.path.split('/').last);
+    return multipartFile;
+  }
+//    Future<http.Response> uploadImage(File image) async {
+//     var score=0;
+//     print(tripModel!.id);
+//     String filename = image.path.split('/').last;
+//     final request = http.MultipartRequest('POST', Uri.parse('https://gp-zx0p.onrender.com/${tripModel!.id}'));
+//     print('id');
+//
+//     //final headers = {'Content-type': 'multipart/from-data'};
+//     Uint8List imageBytes = await image.readAsBytes(); //convert to bytes
+//     String base64image =
+//         base64Encode(imageBytes);
+//     print('basimageeeeeeeee');
+//     print(base64image);//convert bytes to base64 string
+//     ///For sending files/images/videos
+//     request.files.add(await http.MultipartFile.fromPath('image', base64image,filename: filename)
+//         // request.files.add(http.MultipartFile('image',image.readAsBytes().asStream(),image.lengthSync(),filename: filename),
+//         );
+//     //request.headers.addAll(headers);
+//
+//     ///to complete the multipartrequest
+//     var res = await request.send();
+//     print(res.statusCode);
+//     var response = await http.Response.fromStream(res);
+//     final result=json.decode(response.body)as Map<String,dynamic>;
+//     if(result["iswake"]==true){
+//       score=0;
+//     }else{
+//       score+=1;
+//     }
+//     if(score>=5){
+//       FlutterRingtonePlayer.play(fromAsset: 'assets/warning-alarm.wav');
+//     }
+//     return response;
+//   }
 
   static Future<http.Response> uploadProfileImage(File image) async {
     String filename = image.path.split('/').last;
@@ -107,14 +206,16 @@ class HttpService {
   }
 
   static Future<ProfileModel> getData() async {
-    http.Response response = await http.get(_loginUrl);
+    Uri _getData = Uri.parse(ApiConst.baseUrl + '/driver-trips/<id>');
+    http.Response response = await http.get(_getData);
     if (response.statusCode == 200) {
-       final model=ProfileModel.fromJson(jsonDecode(response.body));
+       final model=ProfileModel.fromJson(json.decode(response.body)[0]);
        return model;
     } else {
       throw Exception('Failed to load data');
     }
   }
+
 }
 
 // class Alarm{

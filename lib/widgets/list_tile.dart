@@ -20,7 +20,7 @@ class CustomListTile extends StatelessWidget {
             fontWeight: FontWeight.bold, fontSize: 17, color: Colors.blue[900]),
       ),
       subtitle: Container(
-        padding: EdgeInsets.only(left: 22,top: 10),
+        padding: EdgeInsets.only(left: 22,top: 8),
           child: Text(
         subtitle!,
         style: TextStyle(

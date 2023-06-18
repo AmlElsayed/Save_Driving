@@ -3,6 +3,7 @@ import 'package:safe_driving_app/intro_screen/page1.dart';
 import 'package:safe_driving_app/intro_screen/page2.dart';
 import 'package:safe_driving_app/intro_screen/page3.dart';
 import 'package:safe_driving_app/screens/login_screen.dart';
+
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Onboarding extends StatefulWidget {
@@ -45,7 +46,7 @@ class _OnboardingState extends State<Onboarding> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, LoginPage().id);
+                    Navigator.pushReplacementNamed(context, LoginPage().id);
                   },
                   child: Text('Skip',style: TextStyle(fontSize: 20,color: Colors.white,fontWeight: FontWeight.bold)),
                 ),
@@ -61,7 +62,7 @@ class _OnboardingState extends State<Onboarding> {
                 onlastpage
                     ? GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, LoginPage().id);
+                          Navigator.pushReplacementNamed(context, LoginPage().id);
                         },
                         child: Text('Done',style: TextStyle(fontSize: 20,color: Colors.white,fontWeight: FontWeight.bold)),
                       )

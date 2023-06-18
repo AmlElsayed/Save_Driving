@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 class CustomFormTextField extends StatelessWidget {
-  CustomFormTextField({this.label,this.onChanged});
+  CustomFormTextField({this.label,this.onChanged,required this.onController});
   String? label;
-Function(String)? onChanged;
+ Function(String)? onChanged;
+ TextEditingController onController;
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      controller: onController,
       onChanged: onChanged,
       validator: (data) {
         if(data!.isEmpty){
@@ -13,7 +15,8 @@ Function(String)? onChanged;
         }
       },
       decoration: InputDecoration(
-        contentPadding: EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+        contentPadding: EdgeInsets.all(10),
+        //contentPadding: EdgeInsets.symmetric(vertical: 10,horizontal: 5),
         filled: true,
           fillColor: Colors.blueGrey[50],
           enabledBorder: OutlineInputBorder(

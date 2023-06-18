@@ -51,6 +51,9 @@ dependencies:
   http:
   flutter_easyloading:
   loading_animation_widget: ^1.2.0+4
+  path_provider: ^2.0.15
+  flutter_bloc: ^8.1.3
+  modal_progress_hud_nsn: ^0.3.0
   firebase_core: ^2.13.0
   firebase_auth: ^4.6.1
   dio: ^4.0.0
