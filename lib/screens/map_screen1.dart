@@ -3,14 +3,19 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:safe_driving_app/models/history.dart';
+import 'package:safe_driving_app/models/profile_data.dart';
 import 'package:safe_driving_app/screens/history_screen.dart';
 import 'package:safe_driving_app/services/http_service.dart';
 
 import 'dart:math' show cos, sqrt, asin;
 
 import '../constants.dart';
+
 class MapPage extends StatefulWidget {
-  const MapPage({Key? key}) : super(key: key);
+  ProfileModel profileModel;
+
+  MapPage({required this.profileModel});
 
   @override
   _MapPageState createState() => _MapPageState();
@@ -28,14 +33,15 @@ class _MapPageState extends State<MapPage> {
 
   final startAddressFocusNode = FocusNode();
   final desrinationAddressFocusNode = FocusNode();
-  int count=0;
+  int count = 0;
 
   String _startAddress = '';
 
   String _destinationAddress = '';
-  String? _placeDistance;
-  int tripCompleted=0;
-  int discoveredDistance=0;
+  String _placeDistance = '';
+  int tripCompleted = 0;
+  int discoveredDistance = 0;
+  double totalDistance = 0.0;
   Set<Marker> markers = {};
 
   late PolylinePoints polylinePoints;
@@ -43,17 +49,7 @@ class _MapPageState extends State<MapPage> {
   List<LatLng> polylineCoordinates = [];
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  ///api////
-  _detail(){
-    var data={
-      'current':startAddressController.text,
-      'destination':destinationAddressController.text,
-      'distance':_placeDistance,
-      'discoveredDistance':discoveredDistance,
-      'tripCompleted':tripCompleted,
-    };
-    var res=HttpService.postTripDetails(data);
-  }
+  HttpService? httpService;
 
   Widget _textField({
     required TextEditingController controller,
@@ -254,8 +250,6 @@ class _MapPageState extends State<MapPage> {
       await createPolylines(startLatitude, startLongitude, destinationLatitude,
           destinationLongitude);
 
-      double totalDistance = 0.0;
-
       // Calculating the total distance by adding the distance
       // between small segments
       for (int i = 0; i < polylineCoordinates.length - 1; i++) {
@@ -305,17 +299,17 @@ class _MapPageState extends State<MapPage> {
       travelMode: TravelMode.driving,
     );
 
-     // if (result.points.isNotEmpty) {
-     //   result.points.forEach(
-     //         (PointLatLng point) => polylineCoordinates.add(
-     //       LatLng(point.latitude, point.longitude),
-     //     ),
-     //   );
-     //   setState(() {});
+    // if (result.points.isNotEmpty) {
+    //   result.points.forEach(
+    //         (PointLatLng point) => polylineCoordinates.add(
+    //       LatLng(point.latitude, point.longitude),
+    //     ),
+    //   );
+    //   setState(() {});
     polylineCoordinates.add(LatLng(startLatitude, startLongitude));
     polylineCoordinates.add(LatLng(destinationLatitude, destinationLongitude));
 
-     //}
+    //}
 
     PolylineId id = PolylineId('poly');
     Polyline polyline = Polyline(
@@ -409,6 +403,7 @@ class _MapPageState extends State<MapPage> {
                 ),
               ),
             ),
+
             /// Show the place input fields & button for
             /// showing the route
             SafeArea(
@@ -490,40 +485,58 @@ class _MapPageState extends State<MapPage> {
                                         polylines.clear();
                                       if (polylineCoordinates.isNotEmpty)
                                         polylineCoordinates.clear();
-                                      _placeDistance = null;
+                                      //_placeDistance = null;
+                                    });
+                                    setState(() {
+                                      _calculateDistance().then((isCalculated) {
+                                        if (isCalculated) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Distance Calculated Sucessfully${_placeDistance}'),
+                                            ),
+                                          );
+                                          setState(() {
+                                            print('distance');
+                                            print(_placeDistance);
+                                            final tripDetail = TripModel(
+                                                // id: tripModel!.id,
+                                                // driver_id: widget.profileModel.id,
+                                                destinationLocation:
+                                                    _destinationAddress,
+                                                currentLocation: _startAddress,
+                                                distance: totalDistance);
+                                            HttpService.postTripDetails(
+                                                _startAddress,
+                                                _destinationAddress,
+                                                _placeDistance,
+                                                widget.profileModel.id);
+                                            print(totalDistance);
+                                            print(_placeDistance);
+                                          });
+
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Error Calculating Distance'),
+                                            ),
+                                          );
+                                        }
+                                      });
                                     });
 
-                                    _calculateDistance().then((isCalculated) {
-                                      if (isCalculated) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Distance Calculated Sucessfully'),
-                                          ),
-                                        );
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Error Calculating Distance'),
-                                          ),
-                                        );
-                                      }
-                                    });
-                                    tripCompleted+=1;
-                                    discoveredDistance+=_placeDistance as int;
-                                    _detail();
-                                    print(tripCompleted);
-                                    print(discoveredDistance);
-                                    //  Navigator.of(context).push(
-                                   //      MaterialPageRoute(
-                                   //          builder: (context) => HistoryPage(
-                                   //              currentLocation: _startAddress,
-                                   //              destinationLocation:
-                                   //                  _destinationAddress,
-                                   //              distance: _placeDistance.toString())));
+                                    // tripCompleted+=1;
+                                    // discoveredDistance+=_placeDistance as int;
+
+                                    //await HttpService.postTripDetails('tanta','cairo','20',widget.profileModel.id);
+                                    ///api////
+
+print('object');
+                                     print(totalDistance);
+                                    //print(discoveredDistance);
                                   }
                                 : null,
                             child: Padding(

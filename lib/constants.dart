@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safe_driving_app/models/history.dart';
 
 const String googleAPIKey = "AIzaSyBzOAZJ_li6XyrEgZ1ue8Vz5wLta1nJDes";
 
@@ -19,9 +20,11 @@ class Styles {
     );
   }
 }
+TripModel? tripModel;
 class ApiConst{
-  static String baseUrl='http://localhost:5000';
+  static String baseUrl='https://gp-zx0p.onrender.com';
   static String login='/driver-login';
   static String register='/driver-signup';
+  //static String model='/${tripModel.}';
 }
 
